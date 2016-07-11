@@ -1,12 +1,16 @@
- - define variable sgf_file
+ - define variable sgf_file to the SGF file you want to see, with path
 sgf_file = 'C:/temp/somefile.sgf'
 
- - initialize the parsing "engine" with the following 2 lines verbatim
-d2 <- readLines(sgf_file)  # 'd2.sgf'
-cd2 <- grep(pattern = '^;[WB]', x = d2, value=TRUE)
+ - download the "goplot.txt" library, which contains all the functions to plot a SGF file
+ 
+ - initialize the parsing "engine" and the necessary functions with the command source (e.g. if you copy goplot.txt in your workspace, type just:)
+source("goplot.txt")
 
 - use the following functions: newplot() to initialize the graph, placehandi() to initialize the handicap stones,
-playnext() to play one move at a time
+playnext() to play one move at a time. A typical sequence of command would be:
 newplot()
 placehandi()
+playnext()
+playnext()
+...
 playnext()
