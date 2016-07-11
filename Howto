@@ -6,3 +6,5 @@ d2 <- readLines(sgf_file)  # 'd2.sgf'
 cd2 <- grep(pattern = '^;[WB]', x = d2, value=TRUE)
 
 - use the following functions: newplot() to initialize the graph, playnext() to play one move at a time
+newplot()
+playnext()
