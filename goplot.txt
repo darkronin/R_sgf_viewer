@@ -85,25 +85,7 @@ new_group = FALSE
  #### ...
  
  # group thingy
- ###??
- ###?? if( b[x1 - 1, y1] == b[x1, y1] || b[x1, y1 - 1] == b[x1, y1] || 
- ###??     b[x1 + 1, y1] == b[x1, y1] || b[x1, y1 + 1] == b[x1, y1] ){
- ###??   print("2")
- ###??   # same group as existing one
- ###??   if(b[x1 - 1, y1] == b[x1, y1]) g[x1,y1] <<- g[x1 - 1, y1]
- ###??   if(b[x1, y1 - 1] == b[x1, y1]) g[x1,y1] <<- g[x1, y1 - 1]
- ###??   if(b[x1 + 1, y1] == b[x1, y1]) g[x1,y1] <<- g[x1 + 1, y1]
- ###??   if(b[x1, y1 + 1] == b[x1, y1]) g[x1,y1] <<- g[x1, y1 + 1]
- ###??   
- ###?? } else {
- ###??   # new group
- ###??   new_group = TRUE
- ###??   group_identifier <<- group_identifier + 1
- ###??   g[x1,y1] <<- group_identifier
- ###??   gc[group_identifier] <<- b[x1,y1]
- ###??   print( c( "new group identifier:", group_identifier ) )
- ###?? 
- ###?? }
+ 
   case1group = FALSE
   case2group = FALSE
   case3group = FALSE
@@ -192,19 +174,7 @@ new_group = FALSE
   ### TODO
   # (1)
   # need to calculate the number of liberties of a new move -> b
-##?  gll = c()
-##?  if(new_group == FALSE) gll = GLL[[group_identifier]]
-##?  if(b[x1-1,y1] == 0) gll = c(gll, coord2num(x1-1,y1))
-##?  if(b[x1+1,y1] == 0) gll = c(gll, coord2num(x1+1,y1))
-##?  if(b[x1,y1-1] == 0) gll = c(gll, coord2num(x1,y1-1))
-##?  if(b[x1,y1+1] == 0) gll = c(gll, coord2num(x1,y1+1))
-##?  # reduce
-##?#  print(c("gll before assigning to list", gll))
-##?#print("before")
-##? # print(GLL)
-##?  GLL[[group_identifier]] <<- unique(gll)
-##?#  print("after")
-##?# print(GLL) 
+
    GLL <<- scan2()
    
    play3( with_capture )
@@ -341,5 +311,3 @@ play2('J', 'P','B')
 #     Keep this as last line      #
 #   need to set sgf_file to use   #
 ###################################
-# memo: also...  d2 <- readLines(sgf_file)  # 'd2.sgf'
-# memo: also...  cd2 <- grep(pattern = '^;[WB]', x = d2, value=TRUE)
