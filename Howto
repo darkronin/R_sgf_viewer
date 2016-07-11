@@ -1,4 +1,5 @@
- - define variable sgf_file to the SGF file you want to see, with path
+#Howto
+- define variable sgf_file to the SGF file you want to see, with path
 sgf_file = 'C:/temp/somefile.sgf'
 
  - download the "goplot.txt" library, which contains all the functions to plot a SGF file
