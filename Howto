@@ -1,14 +1,24 @@
-#Howto
-- define variable sgf_file to the SGF file you want to see, with path
-sgf_file = 'C:/temp/somefile.sgf'
+How to use the R SGF viewer
 
- - download the "goplot.txt" library, which contains all the functions to plot a SGF file
- 
- - initialize the parsing "engine" and the necessary functions with the command source (e.g. if you copy goplot.txt in your workspace, type just:)
-source("goplot.txt")
+1. define variable sgf_file to the SGF file you want to see, with path
+   
+   sgf_file = 'C:/temp/somefile.sgf'
 
-- use the following functions: newplot() to initialize the graph, placehandi() to initialize the handicap stones,
-playnext() to play one move at a time. A typical sequence of command would be:
+
+2. download the "goplot.txt" library, which contains all the functions; initialize the parsing "engine" 
+   and the necessary functions by loading it with 'source'
+
+   source("goplot.txt")
+
+
+3. use the following functions: 
+  - newplot() to initialize the graph, 
+  - placehandi() to initialize the handicap stones,
+  - playnext() to play one move at a time. 
+  
+  
+A typical sequence of commands:
+
 newplot()
 placehandi()
 playnext()
