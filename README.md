@@ -3,6 +3,8 @@ a SGF viewer written in R
 
 Feel free to use it for quick replays of games without leaving your favourite statistical software!
 
-v1 features: only single-branch SGF files are supported.  Files with variations will be accurate only up to the first variation
+Known issues: 
+ - only single-branch SGF files are supported.  This means that files with variations will be accurate only up to the first variation
+ - the orientation of the board may be non-standard (AA should be the upper left corner)
 
 Coming next: support for variations
