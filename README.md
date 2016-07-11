@@ -1,4 +1,4 @@
 # R_sgf_viewer
 a SGF viewer which I wrote in R
 
-Tags: go, weiqi, baduk, SGF
+Feel free to use it for quick replays of games without leaving your favourite statistical software!
