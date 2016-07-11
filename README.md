@@ -7,4 +7,6 @@ Known issues:
  - only single-branch SGF files are supported.  This means that files with variations will be accurate only up to the first variation
  - the orientation of the board may be non-standard (AA should be the upper left corner)
 
-Coming next: support for variations
+Coming next: 
+ - support for variations
+ - faster ways to replay
