@@ -1,0 +1,345 @@
+# need to set sgf_file to use #
+global.sgfmove <- 0
+b = matrix( rep(0, 19*2), 19, 19)  # in-memory board
+g = matrix( rep(0, 19*2), 19, 19)  # group belonging
+gll = c()  # group liberties list
+group_identifier <- 0
+GLL = list()
+GLL = vector("list", 361) # better
+gc = vector("list", 361) # group color
+
+# to be used like: GLL = scan2()
+## get a SGF stream
+d2 <- readLines(sgf_file)  # 'd2.sgf'
+cd2 <- grep(pattern = '^;[WB]', x = d2, value=TRUE)
+
+
+ newplot <- function(){
+  # screen
+  plot(10,10, xlim = c(1,19), ylim = c(1,19))
+  # set kaya colour
+  rect(1,1,19,19,col='lightgoldenrod')
+  # grid
+  for(i in 1:19){  segments(1,i,19,); segments(i,1,,19)  }
+  # star points!
+  for(j in c(4,10,16)) {  for(i in c(4,10,16)){  points(  c(4,10,16), rep(j,3), pch = 18  ) } } 
+  # reset global sgfmove
+  global.sgfmove <<- 0
+}
+
+newplot_noreset <- function(){
+  # screen
+  plot(10,10, xlim = c(1,19), ylim = c(1,19))
+  # set kaya colour
+  rect(1,1,19,19,col='lightgoldenrod')
+  # grid
+  for(i in 1:19){  segments(1,i,19,); segments(i,1,,19)  }
+  # star points!
+  for(j in c(4,10,16)) {  for(i in c(4,10,16)){  points(  c(4,10,16), rep(j,3), pch = 18  ) } } 
+}
+
+######### UTILITY FUNCTIONS ##########
+coord2num = function(x1, y1){ return(x1 + (y1-1)*19) }
+
+getletter <- function(x_in){ 
+   gc  <- LETTERS
+   x_out <- 0
+   for(i in 1:19){ if(gc[i] == x_in) x_out <- i }
+   ### x_out <- 20 - x_out
+   return(x_out) 
+ }
+
+## MERGE 2 GROUPS ##
+  merge2groups <- function( g1, g2 ){
+
+	# g1 is discarded, g2 survives  
+     # GLL must be the union of the two and uniqued
+     tempgll = unique( c( GLL[[g1]], GLL[[g2]] ) )
+     print( tempgll )
+     GLL[[g2]] <- tempgll
+     # gc of the discarded identifier must be 0'd
+     gc[g1] <<- 0
+     # g of the discarded identifier must be updated to the surviving group
+  for(i in 1:19) for(j in 1:19) if( g[i,j] == g1 ) g[i,j] <<- g2
+     # b is already OK  
+  }
+     
+## PLAY A MOVE ##
+play2 = function( letter_in, letter_in2, color_in ){
+with_capture = FALSE
+new_group = FALSE
+ x1 <- 0
+ x1 = getletter( toupper(letter_in) )
+ ### x1 = 20 - x1
+ y1 <- 0
+ y1 = getletter( toupper(letter_in2) )
+ print(c(x1, y1))
+ if(color_in == 'B') points(x1, y1, bg='black', pch=21, cex = 3)
+ if(color_in == 'W')  points(x1, y1, bg='white', pch=21, cex = 3)
+ 
+ # update the matrix b
+  if(color_in == 'B') b[x1,y1] <<- 2
+    if(color_in == 'W') b[x1,y1] <<- 1
+ 
+ #### now i realize i am not handling correctly suicide moves
+ #### ...
+ 
+ # group thingy
+ ###??
+ ###?? if( b[x1 - 1, y1] == b[x1, y1] || b[x1, y1 - 1] == b[x1, y1] || 
+ ###??     b[x1 + 1, y1] == b[x1, y1] || b[x1, y1 + 1] == b[x1, y1] ){
+ ###??   print("2")
+ ###??   # same group as existing one
+ ###??   if(b[x1 - 1, y1] == b[x1, y1]) g[x1,y1] <<- g[x1 - 1, y1]
+ ###??   if(b[x1, y1 - 1] == b[x1, y1]) g[x1,y1] <<- g[x1, y1 - 1]
+ ###??   if(b[x1 + 1, y1] == b[x1, y1]) g[x1,y1] <<- g[x1 + 1, y1]
+ ###??   if(b[x1, y1 + 1] == b[x1, y1]) g[x1,y1] <<- g[x1, y1 + 1]
+ ###??   
+ ###?? } else {
+ ###??   # new group
+ ###??   new_group = TRUE
+ ###??   group_identifier <<- group_identifier + 1
+ ###??   g[x1,y1] <<- group_identifier
+ ###??   gc[group_identifier] <<- b[x1,y1]
+ ###??   print( c( "new group identifier:", group_identifier ) )
+ ###?? 
+ ###?? }
+  case1group = FALSE
+  case2group = FALSE
+  case3group = FALSE
+  case4group = FALSE
+ nonewgroup = FALSE
+ if( x1 > 1 ) if( b[x1 - 1, y1] == b[x1, y1] ){
+   nonewgroup = TRUE
+   g[x1,y1] <<- g[x1 - 1, y1]
+     case1group = TRUE
+ }
+ if( y1 > 1 ) if( b[x1, y1 - 1] == b[x1, y1] ){
+   if( nonewgroup == TRUE ){
+     # already assigned the new stone to the previous group
+     # but now, how to merge the two groups?
+     ##
+     # GLL must be the union of the two and uniqued
+     # gc of the discarded identifier must be 0'd
+     # g of the discarded identifier must be updated to the surviving group
+     # b is already OK
+     #...
+     merge2groups( g[x1, y1], g[x1, y1 - 1])     
+   } else {
+     case2group = TRUE
+   }
+   nonewgroup = TRUE
+   g[x1,y1] <<- g[x1, y1 - 1] 
+ } 
+ if( x1 < 19 ) if(  b[x1 + 1, y1] == b[x1, y1] ){
+   if( nonewgroup == TRUE ){
+     # already merged to the previous group(s).. but now?
+     # ...
+     merge2groups( g[x1, y1], g[x1 + 1, y1])     
+   }
+   nonewgroup = TRUE
+   g[x1,y1] <<- g[x1 + 1, y1] 
+ }
+ if( y1 < 19) if ( b[x1, y1 + 1] == b[x1, y1] ){
+   if( nonewgroup == TRUE ){
+     # already merged to the previous group(s).. but now?
+     # ...
+     merge2groups( g[x1, y1], g[x1, y1 + 1])     
+   }
+   nonewgroup = TRUE
+   g[x1,y1] <<- g[x1, y1 + 1] 
+ }
+ if( nonewgroup == FALSE ){
+   # new group
+   new_group = TRUE
+   group_identifier <<- group_identifier + 1
+   g[x1,y1] <<- group_identifier
+   gc[group_identifier] <<- b[x1,y1]
+   print( c( "new group identifier:", group_identifier ) )
+ 
+ 
+ }
+  # group liberties
+  # (2)
+  for(i in 1:group_identifier) {
+  	if(as.character(GLL[i]) == coord2num(x1,y1)){ 
+  	  # WRONG! need to check the group color
+  	  if(as.character(gc[i]) == b[x1,y1]){
+    	   ## print("HAHAHAHA same color")
+    	   # need reassess liberties?
+    	   # ...
+    	   
+      } else { 
+        print(c("capture!", "group #:", i))
+        with_capture = TRUE
+        
+        # do the catpuring! (capturing)
+		GLL[i] <<- '' # beware that c() pops everything..
+ 		gc[i] <<- 0
+		for(i_c in 1:19){          
+ 		     for(j_c in 1:19){
+ 		       if( g[i_c,j_c] == i ){
+ 		       	  g[i_c, j_c] <<- 0
+ 		          b[i_c, j_c] <<- 0  
+ 		       }
+      		}
+  		} # capturing end
+  		
+      }
+  	}
+  }
+  print( c( as.character(GLL[[1]]), coord2num(x1,y1) ))
+  ### TODO
+  # (1)
+  # need to calculate the number of liberties of a new move -> b
+##?  gll = c()
+##?  if(new_group == FALSE) gll = GLL[[group_identifier]]
+##?  if(b[x1-1,y1] == 0) gll = c(gll, coord2num(x1-1,y1))
+##?  if(b[x1+1,y1] == 0) gll = c(gll, coord2num(x1+1,y1))
+##?  if(b[x1,y1-1] == 0) gll = c(gll, coord2num(x1,y1-1))
+##?  if(b[x1,y1+1] == 0) gll = c(gll, coord2num(x1,y1+1))
+##?  # reduce
+##?#  print(c("gll before assigning to list", gll))
+##?#print("before")
+##? # print(GLL)
+##?  GLL[[group_identifier]] <<- unique(gll)
+##?#  print("after")
+##?# print(GLL) 
+   GLL <<- scan2()
+   
+   play3( with_capture )
+ }
+
+play3 = function( has_capture ){
+	 	if( has_capture ) newplot_noreset()
+	 	
+		for(x1p in 1:19){          
+		
+ 		     for(y1p in 1:19){
+ if(b[x1p,y1p] == 2) points(x1p, y1p, bg='black', pch=21, cex = 3)
+ if(b[x1p,y1p] == 1) points(x1p, y1p, bg='white', pch=21, cex = 3)
+			}
+		}
+}
+
+## SCAN LIBERTIES ##
+scan2 = function(){
+  #   reset everything! ##########
+# for(i in 1:361)  GLL[[i]] <<- c()
+GLL = vector("list", 361) # better
+  for(i in 1:19){   # 6 or fewer for debugging one corner
+    for(j in 1:19){  
+    	#	print(GLL[1]) 
+        # print(c(i,j))
+    	if( b[i,j] == 0){  # is liberty
+if( i > 1){ 
+  if(g[i-1,j] != 0){
+        if(is.null(GLL[[g[i-1,j]]]) ){  
+                    GLL[g[i-1,j]] <- coord2num(i,j)    
+        } else {
+    # add it to that group
+    GLL[[g[i-1,j]]] <- c( GLL[[g[i-1,j]]], coord2num(i,j)  )
+    }
+    GLL[[g[i-1,j]]] <- unique(GLL[[g[i-1,j]]] )
+  }
+}
+if( i < 19 ){
+  if(g[i+1,j] != 0){
+      if(is.null(GLL[[g[i+1,j]]]) ){  
+            GLL[g[i+1,j]] <- coord2num(i,j)    
+      } else {
+         GLL[[g[i+1,j]]] <- c( GLL[[g[i+1,j]]], coord2num(i,j)  )
+    }
+    GLL[[g[i+1,j]]] <- unique(GLL[[g[i+1,j]]])
+  }
+}
+if(j > 1){
+  if(g[i,j-1] != 0){
+    if(is.null(GLL[[g[i,j-1]]]) ){
+      GLL[g[i,j-1]] <- coord2num(i,j)    
+    } else {
+      GLL[[g[i,j-1]]] <- c( GLL[[g[i,j-1]]], coord2num(i,j)  )  
+    }
+    
+    GLL[[g[i,j-1]]] <- unique(GLL[[g[i,j-1]]])
+  }
+}
+if(j < 19){
+
+  if(g[i,j+1] != 0)    	{
+      if(is.null(GLL[[g[i,j+1]]]) ){
+        GLL[[g[i,j+1]]] <- coord2num(i,j)  
+      } else {
+       GLL[[g[i,j+1]]] <- c( GLL[[g[i,j+1]]], coord2num(i,j)  )   
+     }
+     GLL[[g[i,j+1]]] <- unique(GLL[[g[i,j+1]]])
+  }
+}
+    
+	} # if b == 0
+  } # j
+ } # i
+ 
+ return( GLL )
+}
+
+
+## builds on the play2() function
+playline <- function(stream, pos){ 
+  loc_line <- stream[pos]
+  play2(substr(loc_line,4,4),substr(loc_line,5,5),substr(loc_line,2,2))
+}
+
+# playline(cd2,1)
+
+## builds on the playline() function
+playnext <- function(){
+  global.sgfmove <<- global.sgfmove + 1
+  playline(cd2, global.sgfmove)
+}
+
+# playnext()
+
+
+##########################
+# determine handicap stones
+hd2 <- d2[2]
+handi_pos = regexpr('HA',hd2)
+global.handi_num <- 0
+if( handi_pos[1] > 0) global.handi_num = substr(hd2,handi_pos[1]+3,handi_pos[1]+3)
+
+placehandi <- function() {
+# draw handicap stones
+# case 2,3
+if( global.handi_num >= 2) {
+  play2('D','P','B') 
+  play2('P','D','B')
+}
+if( global.handi_num == 3)   points(16, 16, bg='black', pch=21, cex = 3)
+# case 4,5
+if( global.handi_num >= 4) {
+  play2('D','D','B') 
+  play2('P','P','B')
+}
+# case 6,7,8
+if( global.handi_num >= 6) {
+play2('D','J','B')   
+play2('P','J','B') 
+}
+if( global.handi_num == 5 ||  global.handi_num == 7 || global.handi_num == 9) {
+  play2('J','J','B')   
+}
+if( global.handi_num >= 8){
+play2('J', 'D','B')   
+play2('J', 'P','B') 
+}
+
+}
+
+
+###################################
+#     Keep this as last line      #
+#   need to set sgf_file to use   #
+###################################
+# memo: also...  d2 <- readLines(sgf_file)  # 'd2.sgf'
+# memo: also...  cd2 <- grep(pattern = '^;[WB]', x = d2, value=TRUE)
