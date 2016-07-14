@@ -12,6 +12,11 @@ gc = vector("list", 361) # group color
 ## get a SGF stream
 d2 <- readLines(sgf_file)  # 'd2.sgf'
 cd2 <- grep(pattern = '^;[WB]', x = d2, value=TRUE)
+if( is.na(d2[2]) ){  # fix gokifu format
+  d2 <- strsplit(d2[1], ';')  # convert to KGS format by splitting at ;
+  cd2 <- grep(pattern = '^[WB]', x = d2[[1]], value=TRUE) # extracts moves
+  cd2 <- paste(';', sep = "", cd2)  # add back the ; for the simple parsing to work
+}
 
 
  newplot <- function(){
