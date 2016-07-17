@@ -1,7 +1,38 @@
 # need to set sgf_file to use #
 global.sgfmove <- 0
-b = matrix( rep(0, 19*2), 19, 19)  # in-memory board
-g = matrix( rep(0, 19*2), 19, 19)  # group belonging
+## get a SGF stream
+d2 <- readLines(sgf_file)  # 'd2.sgf'
+cd2 <- grep(pattern = '^;[WB]', x = d2, value=TRUE)
+
+# fix gokifu format
+if( is.na(d2[2]) ){  
+  d2 <- strsplit(d2[1], ';')  # convert to KGS format by splitting at ;
+  cd2 <- grep(pattern = '^[WB]', x = d2[[1]], value=TRUE) # extracts moves
+  cd2 <- paste(';', sep = "", cd2)  # add back the ; for the simple parsing to work
+  d2 = d2[[1]]
+}
+
+## initialize board size (multi-size supported)
+size19 = as.numeric(19)  # default is 19
+hd2 <- d2[[2]]
+size_pos = regexpr('SZ',hd2)
+if( size_pos[1] > 0) {
+  # accept sizes up to 99
+  c1 = substr(hd2,size_pos[1]+3,size_pos[1]+3)
+  c2 = substr(hd2,size_pos[1]+4,size_pos[1]+4)
+  # integer test on the second character
+  if( grepl("^[0-9]", c2) ) {
+    # 2-digit size
+    size19 <<- as.numeric(substr(hd2,size_pos[1]+3,size_pos[1]+4))
+  } else {
+    # 1-digit size
+    size19 <<- as.numeric(substr(hd2,size_pos[1]+3,size_pos[1]+3))
+  }
+}
+
+## initialize internal representation
+b = matrix( rep(0, size19*2), size19, size19)  # in-memory board
+g = matrix( rep(0, size19*2), size19, size19)  # group belonging
 gll = c()  # group liberties list
 group_identifier <- 0
 GLL = list()
@@ -9,47 +40,47 @@ GLL = vector("list", 361) # better
 gc = vector("list", 361) # group color
 
 # to be used like: GLL = scan2()
-## get a SGF stream
-d2 <- readLines(sgf_file)  # 'd2.sgf'
-cd2 <- grep(pattern = '^;[WB]', x = d2, value=TRUE)
-if( is.na(d2[2]) ){  # fix gokifu format
-  d2 <- strsplit(d2[1], ';')  # convert to KGS format by splitting at ;
-  cd2 <- grep(pattern = '^[WB]', x = d2[[1]], value=TRUE) # extracts moves
-  cd2 <- paste(';', sep = "", cd2)  # add back the ; for the simple parsing to work
-}
 
 
  newplot <- function(){
   # screen
-  plot(10,10, xlim = c(1,19), ylim = c(1,19))
+  plot(10,10, xlim = c(1,size19), ylim = c(1,size19))
   # set kaya colour
-  rect(1,1,19,19,col='lightgoldenrod')
+  rect(1,1,size19,size19,col='lightgoldenrod')
   # grid
-  for(i in 1:19){  segments(1,i,19,); segments(i,1,,19)  }
-  # star points!
-  for(j in c(4,10,16)) {  for(i in c(4,10,16)){  points(  c(4,10,16), rep(j,3), pch = 18  ) } } 
+  for(i in 1:size19){  segments(1,i,size19,); segments(i,1,,size19)  }
+  # star points! (only standard sizes)
+  if( size19 == 19 ) for(j in c(4,10,16)) {  for(i in c(4,10,16)){  points(  c(4,10,16), rep(j,3), pch = 18  ) } } 
+  if( size19 == 13 ) for(j in c(4,7,10)) {  for(i in c(4,7,10)){  points(  c(4,7,10), rep(j,3), pch = 18  ) } } 
+  if( size19 == 9  ) for(j in c(3,5,7)) {  for(i in c(3,5,7)){  points(  c(3,5,7), rep(j,3), pch = 18  ) } } 
   # reset global sgfmove
   global.sgfmove <<- 0
+
+  b <<- matrix( rep(0, size19*2), size19, size19)  # in-memory board
+  g <<- matrix( rep(0, size19*2), size19, size19)  # group belonging
+  group_identifier <<- 0  
 }
 
 newplot_noreset <- function(){
   # screen
-  plot(10,10, xlim = c(1,19), ylim = c(1,19))
+  plot(10,10, xlim = c(1,size19), ylim = c(1,size19))
   # set kaya colour
-  rect(1,1,19,19,col='lightgoldenrod')
+  rect(1,1,size19,size19,col='lightgoldenrod')
   # grid
-  for(i in 1:19){  segments(1,i,19,); segments(i,1,,19)  }
+  for(i in 1:size19){  segments(1,i,size19,); segments(i,1,,size19)  }
   # star points!
-  for(j in c(4,10,16)) {  for(i in c(4,10,16)){  points(  c(4,10,16), rep(j,3), pch = 18  ) } } 
+  if( size19 == 19 ) for(j in c(4,10,16)) {  for(i in c(4,10,16)){  points(  c(4,10,16), rep(j,3), pch = 18  ) } } 
+  if( size19 == 13 ) for(j in c(4,7,10)) {  for(i in c(4,7,10)){  points(  c(4,7,10), rep(j,3), pch = 18  ) } } 
+  if( size19 == 9  ) for(j in c(3,5,7)) {  for(i in c(3,5,7)){  points(  c(3,5,7), rep(j,3), pch = 18  ) } } 
 }
 
 ######### UTILITY FUNCTIONS ##########
-coord2num = function(x1, y1){ return(x1 + (y1-1)*19) }
+coord2num = function(x1, y1){ return(x1 + (y1-1)*size19) }
 
 getletter <- function(x_in){ 
    gc  <- LETTERS
    x_out <- 0
-   for(i in 1:19){ if(gc[i] == x_in) x_out <- i }
+   for(i in 1:size19){ if(gc[i] == x_in) x_out <- i }
    ### x_out <- 20 - x_out
    return(x_out) 
  }
@@ -65,7 +96,7 @@ getletter <- function(x_in){
      # gc of the discarded identifier must be 0'd
      gc[g1] <<- 0
      # g of the discarded identifier must be updated to the surviving group
-  for(i in 1:19) for(j in 1:19) if( g[i,j] == g1 ) g[i,j] <<- g2
+  for(i in 1:size19) for(j in 1:size19) if( g[i,j] == g1 ) g[i,j] <<- g2
      # b is already OK  
   }
      
@@ -118,7 +149,7 @@ new_group = FALSE
    nonewgroup = TRUE
    g[x1,y1] <<- g[x1, y1 - 1] 
  } 
- if( x1 < 19 ) if(  b[x1 + 1, y1] == b[x1, y1] ){
+ if( x1 < size19 ) if(  b[x1 + 1, y1] == b[x1, y1] ){
    if( nonewgroup == TRUE ){
      # already merged to the previous group(s).. but now?
      # ...
@@ -127,7 +158,7 @@ new_group = FALSE
    nonewgroup = TRUE
    g[x1,y1] <<- g[x1 + 1, y1] 
  }
- if( y1 < 19) if ( b[x1, y1 + 1] == b[x1, y1] ){
+ if( y1 < size19) if ( b[x1, y1 + 1] == b[x1, y1] ){
    if( nonewgroup == TRUE ){
      # already merged to the previous group(s).. but now?
      # ...
@@ -163,8 +194,8 @@ new_group = FALSE
         # do the catpuring! (capturing)
 		GLL[i] <<- '' # beware that c() pops everything..
  		gc[i] <<- 0
-		for(i_c in 1:19){          
- 		     for(j_c in 1:19){
+		for(i_c in 1:size19){          
+ 		     for(j_c in 1:size19){
  		       if( g[i_c,j_c] == i ){
  		       	  g[i_c, j_c] <<- 0
  		          b[i_c, j_c] <<- 0  
@@ -188,9 +219,9 @@ new_group = FALSE
 play3 = function( has_capture ){
 	 	if( has_capture ) newplot_noreset()
 	 	
-		for(x1p in 1:19){          
+		for(x1p in 1:size19){          
 		
- 		     for(y1p in 1:19){
+ 		     for(y1p in 1:size19){
  if(b[x1p,y1p] == 2) points(x1p, y1p, bg='black', pch=21, cex = 3)
  if(b[x1p,y1p] == 1) points(x1p, y1p, bg='white', pch=21, cex = 3)
 			}
@@ -202,8 +233,8 @@ scan2 = function(){
   #   reset everything! ##########
 # for(i in 1:361)  GLL[[i]] <<- c()
 GLL = vector("list", 361) # better
-  for(i in 1:19){   # 6 or fewer for debugging one corner
-    for(j in 1:19){  
+  for(i in 1:size19){   # 6 or fewer for debugging one corner
+    for(j in 1:size19){  
     	#	print(GLL[1]) 
         # print(c(i,j))
     	if( b[i,j] == 0){  # is liberty
@@ -218,7 +249,7 @@ if( i > 1){
     GLL[[g[i-1,j]]] <- unique(GLL[[g[i-1,j]]] )
   }
 }
-if( i < 19 ){
+if( i < size19 ){
   if(g[i+1,j] != 0){
       if(is.null(GLL[[g[i+1,j]]]) ){  
             GLL[g[i+1,j]] <- coord2num(i,j)    
@@ -239,7 +270,7 @@ if(j > 1){
     GLL[[g[i,j-1]]] <- unique(GLL[[g[i,j-1]]])
   }
 }
-if(j < 19){
+if(j < size19){
 
   if(g[i,j+1] != 0)    	{
       if(is.null(GLL[[g[i,j+1]]]) ){
