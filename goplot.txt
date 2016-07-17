@@ -56,7 +56,7 @@ getletter <- function(x_in){
 
 ## MERGE 2 GROUPS ##
   merge2groups <- function( g1, g2 ){
-
+     if( g1 == g2 ) return( FALSE) 
 	# g1 is discarded, g2 survives  
      # GLL must be the union of the two and uniqued
      tempgll = unique( c( GLL[[g1]], GLL[[g2]] ) )
