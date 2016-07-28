@@ -132,9 +132,9 @@ with_capture = FALSE
 new_group = FALSE
  x1 <- 0
  x1 = getletter( toupper(letter_in) )
- ### x1 = 20 - x1
  y1 <- 0
  y1 = getletter( toupper(letter_in2) )
+ y1 = size19 + 1 - y1 
  print(c(x1, y1))
  if(color_in == 'B') points(x1, y1, bg='black', pch=21, cex = 3)
  if(color_in == 'W')  points(x1, y1, bg='white', pch=21, cex = 3)
