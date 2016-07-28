@@ -57,14 +57,23 @@ readTag = function( tag, stream ){
   } else return("Unknown")
 }
 
-## print game info
-name_white = readTag('PW', hd2)
-name_black = readTag('PB', hd2)
-print( c("Player white:", name_white ) )
-print( c("Player black:", name_black ) )
-print( c("Game title:", readTag('GN', hd2) ) )
-print( c("Komi:", readTag('KM', hd2) ) )
-if( readTag('HA', hd2) != "Unknown") print( c("Handicap:", readTag('HA', hd2) ) )
+## reads tag but looks in all lines of stream
+readTag2 = function( tag, uberstream ){
+	tentative = "Unknown"
+	for(i in 1:length(uberstream)) {
+  		hd3 = uberstream[[i]]
+  		tentative =  readTag( tag, hd3 ) 
+  		if(tentative != "Unknown") break
+	}
+	return(tentative)
+}
+
+print( c("Player white:", readTag2('PW', d2) ) )
+print( c("Player black:", readTag2('PB', d2) ) )
+
+print( c("Game title:", readTag2('GN', d2) ) )
+print( c("Komi:", readTag2('KM', d2) ) )
+if( readTag2('HA', d2) != "Unknown") print( c("Handicap:", readTag2('HA', d2) ) )
 
  newplot <- function(){
   # screen
