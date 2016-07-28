@@ -12,6 +12,7 @@ if( is.na(d2[2]) ){
   d2 = d2[[1]]
 }
 
+
 ## initialize board size (multi-size supported)
 size19 = as.numeric(19)  # default is 19
 hd2 <- d2[[2]]
@@ -41,6 +42,29 @@ gc = vector("list", 361) # group color
 
 # to be used like: GLL = scan2()
 
+##
+readTag = function( tag, stream ){
+  resultTag = ""
+  tag_pos = regexpr(tag, stream)
+  if( tag_pos[1] > 0 ) {
+    tag_pos[1] = tag_pos[1] + nchar(tag)
+    for(i in 1:100){
+      checkSign = substr(stream, tag_pos[1]+i, tag_pos[1]+i)
+      if( checkSign == as.character("]")) break
+      resultTag = paste( resultTag, checkSign, sep = "" )
+    }
+    return( resultTag )
+  } else return("Unknown")
+}
+
+## print game info
+name_white = readTag('PW', hd2)
+name_black = readTag('PB', hd2)
+print( c("Player white:", name_white ) )
+print( c("Player black:", name_black ) )
+print( c("Game title:", readTag('GN', hd2) ) )
+print( c("Komi:", readTag('KM', hd2) ) )
+if( readTag('HA', hd2) != "Unknown") print( c("Handicap:", readTag('HA', hd2) ) )
 
  newplot <- function(){
   # screen
@@ -59,6 +83,8 @@ gc = vector("list", 361) # group color
   b <<- matrix( rep(0, size19*2), size19, size19)  # in-memory board
   g <<- matrix( rep(0, size19*2), size19, size19)  # group belonging
   group_identifier <<- 0  
+  
+  placehandi()
 }
 
 newplot_noreset <- function(){
